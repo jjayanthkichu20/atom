@@ -2,7 +2,7 @@
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/jjayanthkichu20/atom)
 
-> 🌐 **Live Demo Online:** [https://courses-meter-dist-composer.trycloudflare.com/chat/029c1815-a1a1-48e6-929b-1f6909f28fd5](https://courses-meter-dist-composer.trycloudflare.com/chat/029c1815-a1a1-48e6-929b-1f6909f28fd5)
+> 🌐 **Live Demo Online:** [https://interesting-dayton-exclusive-industrial.trycloudflare.com/chat/029c1815-a1a1-48e6-929b-1f6909f28fd5](https://interesting-dayton-exclusive-industrial.trycloudflare.com/chat/029c1815-a1a1-48e6-929b-1f6909f28fd5)
 
 A luxury AI-powered job application co-pilot built with Flask + SQLite + OpenAI GPT-4o.  
 Live clone of [JobAlchemy Atom](https://atom.jobalchemy.ai) with a bespoke dark-gold luxury UI.
