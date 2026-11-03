@@ -147,6 +147,16 @@ def fallback_agent(user_message, jobs, profile):
                 f"Reply with your answer for live coaching!"
             )
 
+    if any(k in msg for k in ["not match", "does not match", "why", "mismatch", "job description", "jd"]):
+        return (
+            f"### 🎯 Understanding CV vs Job Description Matching & How to Solve It\n\n"
+            f"Here is why an uploaded CV might show lower compatibility or mismatch, and how Atom solves it:\n\n"
+            f"1. **Targeting a Specific Role**: Pre-seeded jobs in the system are broad templates. If you are targeting a specific job, use the **'🎯 Match Target Job Description'** tool in the sidebar to paste your exact JD.\n"
+            f"2. **ATS Keyword Alignment**: Automated Applicant Tracking Systems (ATS) compare your resume text word-for-word against the requirements in the job posting. If the JD requires specific tools or methodologies not mentioned in your CV, the score drops.\n"
+            f"3. **PDF Text Formatting**: Resumes designed with multi-column graphics, icons, or text embedded inside images can lose readable text during extraction.\n\n"
+            f"💡 **Instant Solution:** Click **'🎯 Match Target Job Description'** in the sidebar or hero banner, paste your target job posting, and Atom will pinpoint your exact **matching skills**, **missing keywords**, and give you a customized dossier!"
+        )
+
     if any(k in msg for k in ["database", "application", "track", "status"]):
         apps = database.get_all_applications_from_db()
         return (
@@ -217,6 +227,36 @@ def get_session(session_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# Comprehensive multi-domain skill dictionary for accurate ATS parsing
+EXTENDED_SKILLS = [
+    # Frontend & Web
+    "React", "Next.js", "Vue.js", "Angular", "TypeScript", "JavaScript", "HTML5", "CSS3",
+    "Tailwind CSS", "Redux", "GraphQL", "REST API", "Web Performance", "Design Systems",
+    # Backend & Distributed Systems
+    "Python", "Django", "FastAPI", "Flask", "Node.js", "Express", "Java", "Spring Boot",
+    "Go", "Golang", "Rust", "C++", "C#", ".NET", "Microservices", "gRPC", "Kafka", "RabbitMQ",
+    # Databases
+    "PostgreSQL", "MySQL", "MongoDB", "Redis", "Elasticsearch", "SQL", "DynamoDB", "Cassandra",
+    # Cloud, DevOps & Infrastructure
+    "AWS", "GCP", "Google Cloud", "Azure", "Docker", "Kubernetes", "Terraform", "CI/CD",
+    "Linux", "Ansible", "Helm", "Prometheus", "Grafana", "Datadog", "Cybersecurity",
+    # AI, Machine Learning & Data Science
+    "Machine Learning", "Deep Learning", "PyTorch", "TensorFlow", "Scikit-Learn", "NLP",
+    "Computer Vision", "LLMs", "Generative AI", "Pandas", "NumPy", "Apache Spark",
+    "Data Pipelines", "Snowflake", "Databricks", "Power BI", "Tableau",
+    # Mobile
+    "Flutter", "React Native", "Swift", "iOS", "Android", "Kotlin",
+    # Product, Design & Management
+    "Product Management", "Agile", "Scrum", "Jira", "Figma", "UI/UX Design",
+    "User Research", "Wireframing", "Roadmap Planning", "A/B Testing",
+    # Marketing, Sales & Business
+    "SEO", "Content Strategy", "Digital Marketing", "CRM", "Salesforce", "HubSpot",
+    "Customer Success", "Business Development", "Financial Analysis", "Accounting"
+]
+
+# In-memory storage for raw CV text by session for deep JD matching
+CV_RAW_TEXT_STORE = {}
+
 # ── API: CV Upload & Parse ────────────────────────────────────────────────────
 
 @app.route("/api/upload-cv", methods=["POST"])
@@ -251,7 +291,6 @@ def upload_cv():
                 return jsonify({"success": False, "error": "python-docx not installed. Run: pip install python-docx"}), 500
 
         else:
-            # TXT / MD / plain text
             content = file.read()
             raw_text = content.decode("utf-8", errors="replace")
 
@@ -261,6 +300,9 @@ def upload_cv():
                 "success": False,
                 "error": "Could not extract readable text. Ensure the file is not a scanned image or password-protected PDF."
             }), 400
+
+        # Store raw text for JD matching
+        CV_RAW_TEXT_STORE[session_id] = raw_text
 
         # ── Parse CV ────────────────────────────────────────────────────────
         lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
@@ -282,34 +324,40 @@ def upload_cv():
         ph = re.search(r"(\+?[\d][\d\s\-().]{7,}\d)", raw_text)
         phone = ph.group(0).strip() if ph else "+1 (555) 000-0001"
 
-        # Skills
-        KNOWN_SKILLS = [
-            "Python", "JavaScript", "TypeScript", "React", "Next.js", "Vue", "Angular",
-            "Node.js", "Express", "Django", "FastAPI", "Flask", "Spring Boot",
-            "Java", "Go", "Golang", "Rust", "C++", "C#", ".NET", "Swift", "Kotlin",
-            "SQL", "PostgreSQL", "MySQL", "MongoDB", "Redis", "GraphQL", "REST API",
-            "AWS", "GCP", "Azure", "Docker", "Kubernetes", "Terraform", "CI/CD",
-            "Machine Learning", "Deep Learning", "PyTorch", "TensorFlow",
-            "Tailwind CSS", "Design Systems", "Web Performance", "Jest", "Playwright",
-            "Figma", "Agile", "Scrum", "Leadership",
-        ]
-        skills = [s for s in KNOWN_SKILLS if re.search(r"\b" + re.escape(s.lower()) + r"\b", raw_lower)]
-        if not skills:
-            skills = ["Software Architecture", "System Design", "TypeScript", "Engineering Leadership"]
+        # Multi-domain skill extraction
+        skills = []
+        for s in EXTENDED_SKILLS:
+            pattern = r"(?<!\w)" + re.escape(s.lower()) + r"(?!\w)"
+            if re.search(pattern, raw_lower):
+                skills.append(s)
 
-        # Infer title
-        if any(k in raw_lower for k in ["frontend", "react", "ui/ux", "css"]):
+        if not skills:
+            skills = ["Strategic Planning", "Project Execution", "Cross-Functional Leadership", "System Architecture"]
+
+        # Multi-domain Title Inferencing
+        title = "Senior Professional"
+        if any(k in raw_lower for k in ["machine learning", "ai engineer", "deep learning", "nlp", "data scientist"]):
+            title = "Senior AI / Machine Learning Engineer"
+        elif any(k in raw_lower for k in ["data engineer", "data analyst", "analytics", "sql", "snowflake"]):
+            title = "Lead Data & Analytics Architect"
+        elif any(k in raw_lower for k in ["devops", "cloud architect", "infrastructure", "kubernetes", "sre", "terraform"]):
+            title = "Principal Cloud & DevOps Architect"
+        elif any(k in raw_lower for k in ["product manager", "product owner", "roadmap", "prd", "scrum"]):
+            title = "Senior Technical Product Manager"
+        elif any(k in raw_lower for k in ["ui/ux", "product designer", "figma", "user research", "wirefram"]):
+            title = "Staff Product & UI/UX Designer"
+        elif any(k in raw_lower for k in ["frontend", "react", "next.js", "angular", "vue", "web developer"]):
             title = "Senior Frontend Architect"
-        elif any(k in raw_lower for k in ["machine learning", "ai engineer", "data scientist", "ml"]):
-            title = "Lead AI / ML Systems Engineer"
-        elif any(k in raw_lower for k in ["devops", "cloud architect", "infrastructure", "kubernetes"]):
-            title = "Principal Cloud Infrastructure Architect"
-        elif any(k in raw_lower for k in ["backend", "distributed systems", "api design"]):
+        elif any(k in raw_lower for k in ["backend", "distributed systems", "golang", "microservices", "java"]):
             title = "Senior Distributed Systems Engineer"
-        elif any(k in raw_lower for k in ["full stack", "fullstack"]):
+        elif any(k in raw_lower for k in ["full stack", "fullstack", "node.js", "django"]):
             title = "Senior Full Stack Engineer"
+        elif any(k in raw_lower for k in ["marketing", "seo", "growth", "content strategist", "campaign"]):
+            title = "Director of Growth & Digital Strategy"
+        elif any(k in raw_lower for k in ["sales", "account executive", "business development", "b2b"]):
+            title = "Senior Strategic Account Director"
         else:
-            title = "Senior Software Engineer"
+            title = "Senior Technology Specialist"
 
         profile_data = {
             "name": candidate_name,
@@ -321,15 +369,15 @@ def upload_cv():
             "github": "",
             "portfolio": "",
             "skills": skills,
-            "summary": f"Distinguished {title} with expertise in {', '.join(skills[:5])}.",
+            "summary": f"Distinguished {title} with validated expertise in {', '.join(skills[:5])}.",
             "cv_filename": file.filename,
         }
         database.update_candidate_profile(profile_data)
 
-        # ── Generate 3 recalibrated jobs ────────────────────────────────────
-        def make_job(company, logo, color, location, salary_range, score, badge, extra_title=""):
+        # ── Generate Tailored Jobs Based on Detected Domain ──────────────────
+        def make_job(company, logo, color, location, salary_range, score, badge, title_override=None):
             jid = f"job-{uuid.uuid4().hex[:8]}"
-            jtitle = extra_title if extra_title else title
+            jtitle = title_override if title_override else title
             return {
                 "id": jid,
                 "title": jtitle,
@@ -343,40 +391,40 @@ def upload_cv():
                 "match_badge": badge,
                 "tech_stack": skills[:5],
                 "why_it_fits": [
-                    f"Direct overlap with your core stack: {', '.join(skills[:3])}.",
-                    "Proven execution speed and architecture ownership.",
-                    f"Alignment with {company}'s engineering philosophy.",
+                    f"Direct overlap with your core competencies: {', '.join(skills[:3])}.",
+                    "Proven career execution and architecture ownership.",
+                    f"Alignment with {company}'s strategic goals.",
                 ],
-                "description": f"{company} seeks a world-class {jtitle} with expertise in {', '.join(skills[:3])}.",
+                "description": f"{company} is seeking an accomplished {jtitle} with proven expertise in {', '.join(skills[:4])}.",
                 "screening_questions": [
                     {
-                        "question": f"Describe a project demonstrating mastery in {skills[0] if skills else 'engineering'}.",
-                        "suggested_answer": f"Architected a distributed system using {', '.join(skills[:3])}, scaling to 1M+ users.",
+                        "question": f"Describe a project demonstrating mastery in {skills[0] if skills else 'your field'}.",
+                        "suggested_answer": f"Architected and delivered end-to-end solutions utilizing {', '.join(skills[:3])}, driving measured organizational impact.",
                     },
                     {
-                        "question": "What is your target compensation range?",
-                        "suggested_answer": salary_range + " base + equity",
+                        "question": "What is your target compensation and availability?",
+                        "suggested_answer": f"Targeting {salary_range} base compensation with standard 2-week transition availability.",
                     },
                 ],
             }
 
         new_jobs = [
-            make_job("Anthropic", "A", "#d97706", "Remote (Global)", "$195,000–$240,000", 98, "Exceptional Match"),
-            make_job("Stripe",    "S", "#635bff", "Remote (US/EU)",  "$180,000–$215,000", 96, "High Match"),
-            make_job("Linear",    "L", "#5e6ad2", "Remote (World)",  "$185,000–$225,000", 94, "High Match",
-                     f"Staff {title.replace('Senior ','').replace('Principal ','')}"),
+            make_job("Anthropic / AI Core", "A", "#d97706", "Remote (Global)", "$195,000–$240,000", 98, "Exceptional Match"),
+            make_job("Stripe / Enterprise",  "S", "#635bff", "Remote (US/EU)",  "$180,000–$215,000", 96, "High Match"),
+            make_job("Linear / Systems",     "L", "#5e6ad2", "Remote (World)",  "$185,000–$225,000", 94, "High Match", f"Lead {title.replace('Senior ','').replace('Principal ','')}"),
+            make_job("Vercel / Platform",    "▲", "#ffffff", "Remote (Global)", "$175,000–$210,000", 92, "Strong Match"),
         ]
         database.replace_jobs_in_db(new_jobs)
 
         # ── Persist the CV message ───────────────────────────────────────────
         reply = (
-            f"### 💎 Executive CV Parsed & Synced: `{file.filename}`\n\n"
-            f"- **Candidate:** {candidate_name}\n"
-            f"- **Title:** {title}\n"
-            f"- **Contact:** `{email}` | `{phone}`\n"
-            f"- **Validated Stack:** `{', '.join(skills[:8])}`\n\n"
-            f"Match scores recalibrated across **{len(new_jobs)} bespoke openings**. "
-            f"Click **Apply Now** to review your pre-filled application."
+            f"### 💎 Executive CV Parsed & Calibrated: `{file.filename}`\n\n"
+            f"- **Candidate:** **{candidate_name}**\n"
+            f"- **Detected Domain & Role:** **{title}**\n"
+            f"- **Identified Skills ({len(skills)}):** `{', '.join(skills[:8])}`\n"
+            f"- **Contact:** `{email}` | `{phone}`\n\n"
+            f"🎯 **Matching Status:** I have recalibrated **{len(new_jobs)} bespoke openings** around your domain. "
+            f"You can also click **'🎯 Match Target Job Description'** in the sidebar to paste your specific target JD and get an exact ATS keyword gap analysis!"
         )
         database.add_message_to_db(session_id, "assistant", reply, jobs=new_jobs)
 
@@ -389,6 +437,123 @@ def upload_cv():
 
     except Exception as e:
         return jsonify({"success": False, "error": f"Upload failed: {str(e)}"}), 500
+
+
+# ── API: Match Target Job Description (ATS Gap Analysis) ──────────────────────
+
+@app.route("/api/match-jd", methods=["POST"])
+def match_job_description():
+    data = request.get_json(silent=True) or {}
+    session_id = data.get("session_id") or data.get("sessionId") or DEFAULT_SESSION_ID
+    target_title = (data.get("job_title") or "").strip() or "Target Executive Role"
+    company = (data.get("company") or "").strip() or "Target Enterprise"
+    jd_text = (data.get("jd_text") or "").strip()
+
+    if not jd_text or len(jd_text) < 20:
+        return jsonify({"success": False, "error": "Please provide the target job description text to compare."}), 400
+
+    profile = database.get_candidate_profile()
+    cv_skills = set(s.lower() for s in profile.get("skills", []))
+    raw_cv = (CV_RAW_TEXT_STORE.get(session_id) or profile.get("summary", "")).lower()
+
+    jd_lower = jd_text.lower()
+    jd_required_skills = []
+    for s in EXTENDED_SKILLS:
+        pattern = r"(?<!\w)" + re.escape(s.lower()) + r"(?!\w)"
+        if re.search(pattern, jd_lower):
+            jd_required_skills.append(s)
+
+    if not jd_required_skills:
+        # Fallback to key technical / leadership terms found in JD
+        words = re.findall(r"\b[A-Za-z]{3,}\b", jd_text)
+        jd_required_skills = list(set([w.capitalize() for w in words[:15] if len(w) > 4]))[:10]
+
+    matched_skills = []
+    missing_skills = []
+
+    for s in jd_required_skills:
+        s_low = s.lower()
+        if s_low in cv_skills or re.search(r"(?<!\w)" + re.escape(s_low) + r"(?!\w)", raw_cv):
+            matched_skills.append(s)
+        else:
+            missing_skills.append(s)
+
+    total_req = len(jd_required_skills)
+    matched_count = len(matched_skills)
+    base_score = int((matched_count / total_req * 100)) if total_req > 0 else 75
+    # Smooth between 65% and 98% for realistic ATS feedback
+    ats_score = min(98, max(55, base_score + 10))
+
+    if ats_score >= 90:
+        badge = "Exceptional Match"
+    elif ats_score >= 80:
+        badge = "Strong Match"
+    elif ats_score >= 70:
+        badge = "Moderate Match"
+    else:
+        badge = "Keyword Gap Identified"
+
+    missing_advice = (
+        f"Incorporate `{', '.join(missing_skills[:4])}` into your career achievements and executive summary to bypass automated ATS filters."
+        if missing_skills else "Your CV has exceptional keyword alignment with this job description!"
+    )
+
+    recommendation = (
+        f"Your CV has a **{ats_score}% ATS match** for {target_title} at {company}. "
+        f"You match **{len(matched_skills)}** key competencies ({', '.join(matched_skills[:4]) if matched_skills else 'Domain alignment'}). "
+        f"{missing_advice}"
+    )
+
+    # Allow auto-creating this job in the database if requested
+    custom_job = {
+        "id": f"job-custom-{uuid.uuid4().hex[:6]}",
+        "title": target_title,
+        "company": company,
+        "logo": company[:1].upper(),
+        "color": "#d4af37",
+        "location": "Remote / Specified",
+        "salary": "$175,000–$225,000 (Target)",
+        "type": "Full-time",
+        "match_score": ats_score,
+        "match_badge": badge,
+        "tech_stack": matched_skills[:4] if matched_skills else jd_required_skills[:4],
+        "why_it_fits": [
+            f"Matches {len(matched_skills)} of {total_req} core JD requirements.",
+            f"Key strengths: {', '.join(matched_skills[:3]) if matched_skills else 'Strategic alignment'}.",
+            f"Tailoring recommendation: {missing_advice}"
+        ],
+        "description": jd_text[:400] + ("..." if len(jd_text) > 400 else ""),
+        "screening_questions": [
+            {
+                "question": f"How does your experience align with the requirements for {target_title}?",
+                "suggested_answer": f"I bring proven domain mastery in {', '.join(matched_skills[:3]) if matched_skills else 'core industry competencies'}, delivering measurable impact at scale."
+            }
+        ]
+    }
+
+    # Add message in chat stream
+    chat_report = (
+        f"### 🎯 ATS Match Report: {target_title} @ {company}\n\n"
+        f"**ATS Compatibility Rating: {ats_score}% ({badge})**\n\n"
+        f"✅ **Matching Keywords Found ({len(matched_skills)}):** `{', '.join(matched_skills) if matched_skills else 'General background'}`\n\n"
+        f"⚠️ **Missing Keywords to Add ({len(missing_skills)}):** `{', '.join(missing_skills) if missing_skills else 'None — complete coverage!'}`\n\n"
+        f"💡 **Recommendation:** {missing_advice}"
+    )
+    database.add_single_job_to_db(custom_job)
+    database.add_message_to_db(session_id, "assistant", chat_report, jobs=[custom_job])
+
+    session_data = database.get_session_data(session_id)
+
+    return jsonify({
+        "success": True,
+        "ats_score": ats_score,
+        "match_badge": badge,
+        "matched_skills": matched_skills,
+        "missing_skills": missing_skills,
+        "recommendation": recommendation,
+        "job": custom_job,
+        "jobs": session_data["jobs"]
+    })
 
 
 # ── API: Chat ─────────────────────────────────────────────────────────────────

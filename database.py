@@ -492,6 +492,32 @@ def get_all_applications_from_db():
     conn.close()
     return apps
 
+def add_single_job_to_db(j):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT OR REPLACE INTO jobs (id, title, company, logo, color, location, salary, type, match_score, match_badge, tech_stack_json, why_fits_json, description, screening_json, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        j["id"],
+        j["title"],
+        j["company"],
+        j.get("logo", j["company"][:1]),
+        j.get("color", "#d4af37"),
+        j.get("location", "Remote"),
+        j.get("salary", "$160,000–$220,000"),
+        j.get("type", "Full-time"),
+        j.get("match_score", 90),
+        j.get("match_badge", "Custom Target Match"),
+        json.dumps(j.get("tech_stack", [])),
+        json.dumps(j.get("why_it_fits", [])),
+        j.get("description", ""),
+        json.dumps(j.get("screening_questions", [])),
+        time.strftime("%Y-%m-%d %H:%M:%S")
+    ))
+    conn.commit()
+    conn.close()
+
 def replace_jobs_in_db(new_jobs):
     conn = get_db()
     cursor = conn.cursor()

@@ -96,6 +96,13 @@ function bindAllEvents() {
   $('closeTrackerModalBtn')?.addEventListener('click', closeTracker);
   $('trackerModalBackdrop')?.addEventListener('click', (e) => { if (e.target === $('trackerModalBackdrop')) closeTracker(); });
 
+  /* Target Job Description Match Modal */
+  [$('sidebarMatchJdBtn'), $('heroMatchJdBtn')].forEach(btn => btn?.addEventListener('click', openJdModal));
+  $('closeJdMatchModalBtn')?.addEventListener('click', closeJdModal);
+  $('jdMatchModalBackdrop')?.addEventListener('click', (e) => { if (e.target === $('jdMatchModalBackdrop')) closeJdModal(); });
+  $('analyzeJdBtn')?.addEventListener('click', handleAnalyzeJd);
+  $('createJobFromJdBtn')?.addEventListener('click', handleCreateJobFromJd);
+
   /* Suggestion chips */
   document.querySelectorAll('.suggestion-chip').forEach(chip =>
     chip.addEventListener('click', () => {
@@ -655,6 +662,114 @@ function saveApiKey() {
   closeApiModal();
   appendAtomMessage(`✅ **AI credentials updated** — ${label} · \`${state.model}\``);
   scrollBottom();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TARGET JOB DESCRIPTION MATCH ANALYZER
+   ═══════════════════════════════════════════════════════════ */
+let latestAnalyzedJob = null;
+
+function openJdModal() {
+  const b = $('jdMatchModalBackdrop');
+  if (!b) return;
+  b.style.display = '';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeJdModal() {
+  const b = $('jdMatchModalBackdrop');
+  if (b) b.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function handleAnalyzeJd() {
+  const title = $('targetJobTitleInput')?.value.trim() || 'Target Executive Role';
+  const company = $('targetCompanyInput')?.value.trim() || 'Target Enterprise';
+  const jdText = $('targetJdTextarea')?.value.trim();
+
+  if (!jdText) {
+    alert('Please paste the job description text to compare against your CV.');
+    return;
+  }
+
+  const btn = $('analyzeJdBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Comparing CV against Job Description...</span>';
+  }
+
+  try {
+    const res = await fetch('/api/match-jd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        job_title: title,
+        company: company,
+        jd_text: jdText,
+        save_as_job: true
+      })
+    });
+    const data = await res.json();
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>⚡ Analyze & Calculate ATS Match Against My CV</span>';
+    }
+
+    if (data.success) {
+      latestAnalyzedJob = data.job;
+
+      // Update analysis UI
+      const resultsArea = $('jdAnalysisResults');
+      if (resultsArea) resultsArea.style.display = 'flex';
+
+      if ($('jdMatchScoreText')) $('jdMatchScoreText').textContent = `${data.ats_score}% ATS Match`;
+      if ($('jdMatchPill')) $('jdMatchPill').textContent = data.match_badge || 'High Fit';
+
+      // Matched skills
+      const matchedContainer = $('jdMatchingSkillsContainer');
+      if (matchedContainer) {
+        matchedContainer.innerHTML = data.matched_skills.length
+          ? data.matched_skills.map(s => `<span class="job-tag" style="background:rgba(34,197,94,0.12); color:#22c55e; border-color:rgba(34,197,94,0.25);">✓ ${esc(s)}</span>`).join('')
+          : '<span style="font-size:12px; color:var(--text-muted);">No exact keyword overlap found.</span>';
+      }
+
+      // Missing skills
+      const missingContainer = $('jdMissingSkillsContainer');
+      if (missingContainer) {
+        missingContainer.innerHTML = data.missing_skills.length
+          ? data.missing_skills.map(s => `<span class="job-tag" style="background:rgba(245,158,11,0.12); color:#f59e0b; border-color:rgba(245,158,11,0.25);">+ ${esc(s)}</span>`).join('')
+          : '<span style="font-size:12px; color:#22c55e;">✓ Excellent coverage! No critical keywords missing.</span>';
+      }
+
+      if ($('jdRecommendationText')) {
+        $('jdRecommendationText').textContent = data.recommendation;
+      }
+
+      // Refresh job cards if all jobs returned
+      if (data.jobs && data.jobs.length > 0) {
+        state.jobs = data.jobs;
+        renderJobCards(data.jobs);
+      }
+
+      appendAtomMessage(`🎯 **ATS Gap Analysis Complete for ${esc(title)} @ ${esc(company)}** (${data.ats_score}% Match). Detailed keyword breakdown displayed.`);
+    } else {
+      alert(data.error || 'Failed to analyze job description.');
+    }
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>⚡ Analyze & Calculate ATS Match Against My CV</span>';
+    }
+    alert('Error connecting to analyzer: ' + err.message);
+  }
+}
+
+function handleCreateJobFromJd() {
+  if (!latestAnalyzedJob) return;
+  closeJdModal();
+  openDrawer(latestAnalyzedJob);
 }
 
 /* ═══════════════════════════════════════════════════════════
