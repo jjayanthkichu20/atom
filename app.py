@@ -35,6 +35,8 @@ if os.path.exists(env_path):
 
 USER_OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+DEFAULT_PROVIDER = os.environ.get("DEFAULT_PROVIDER", "gemini" if GEMINI_API_KEY else "openai")
+DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "gemini-2.5-flash" if DEFAULT_PROVIDER == "gemini" else "gpt-4o-mini")
 
 # ── AI Helpers ────────────────────────────────────────────────────────────────
 
@@ -222,6 +224,8 @@ def get_session(session_id):
             "messages": messages,
             "jobs": data["jobs"],
             "profile": data["profile"],
+            "default_provider": DEFAULT_PROVIDER,
+            "default_model": DEFAULT_MODEL,
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

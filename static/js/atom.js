@@ -149,6 +149,14 @@ async function loadSessionData() {
     /* Restore profile display */
     if (data.profile) updateProfileUI(data.profile);
 
+    /* Adopt server configured default provider */
+    if (data.default_provider) {
+      state.provider = data.default_provider;
+      state.model = data.default_model || (data.default_provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini');
+      syncProviderRadios();
+      updateProviderIndicators();
+    }
+
   } catch (err) {
     appendAtomMessage('Atom is ready. Type a message or upload your CV to begin.');
   }
@@ -644,13 +652,7 @@ async function testApiKey() {
   }
 }
 
-function saveApiKey() {
-  const inp = $('apiKeyInput');
-  if (inp?.value.trim()) state.apiKey = inp.value.trim();
-  const sel = $('modelSelect');
-  if (sel) state.model = sel.value;
-
-  /* Update UI indicators */
+function updateProviderIndicators() {
   const label = state.provider === 'openai' ? 'OpenAI (Active)' : 'Gemini (Active)';
   const dot   = $('apiDotSidebar');
   if (dot) { dot.className = 'status-dot connected'; }
@@ -658,6 +660,17 @@ function saveApiKey() {
   if (sl) sl.textContent = label;
   const ki = $('keyIndicator');
   if (ki) { ki.textContent = state.provider === 'openai' ? 'OpenAI Ready' : 'Gemini Ready'; ki.className = 'key-indicator-pill active'; }
+}
+
+function saveApiKey() {
+  const inp = $('apiKeyInput');
+  if (inp?.value.trim()) state.apiKey = inp.value.trim();
+  const sel = $('modelSelect');
+  if (sel) state.model = sel.value;
+
+  /* Update UI indicators */
+  updateProviderIndicators();
+  const label = state.provider === 'openai' ? 'OpenAI (Active)' : 'Gemini (Active)';
 
   closeApiModal();
   appendAtomMessage(`✅ **AI credentials updated** — ${label} · \`${state.model}\``);
