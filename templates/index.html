@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ATOM PREMIER — Executive AI Career Co-Pilot</title>
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23121520' stroke='%23d4af37' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23d4af37' opacity='0.8'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23ffffff'/%3E%3C/svg%3E" />
+  
+  <!-- Luxury Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="/static/css/atom.css" />
+</head>
+<body class="luxury-body">
+  <!-- Ambient Background Mesh Glows -->
+  <div class="ambient-glow glow-gold"></div>
+  <div class="ambient-glow glow-violet"></div>
+  <div class="ambient-glow glow-cyan"></div>
+
+  <div class="atom-app-layout">
+    
+    <!-- LUXURY SIDEBAR -->
+    <aside class="atom-sidebar" id="sidebar">
+      <div class="sidebar-brand-row">
+        <a href="/" class="brand-link">
+          <div class="luxury-crest">
+            <div class="crest-ring"></div>
+            <div class="crest-core">✦</div>
+          </div>
+          <div class="brand-text-wrap">
+            <span class="brand-title">ATOM</span>
+            <span class="brand-sub">PREMIER EDITION • AI CO-PILOT</span>
+          </div>
+        </a>
+        <button type="button" class="icon-btn-ghost sidebar-toggle-btn" id="collapseSidebarBtn" title="Toggle sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Database Status Ribbon -->
+      <div class="db-status-ribbon">
+        <div class="db-pulse-dot"></div>
+        <span>SQLite Database Connected (atom_luxury.db)</span>
+      </div>
+
+      <!-- New Search CTA -->
+      <div class="sidebar-action-wrap">
+        <button type="button" class="new-search-btn luxury-gold-btn" id="newSearchBtn">
+          <span class="btn-sparkle">✦</span>
+          <span>New Executive Search</span>
+        </button>
+      </div>
+
+      <!-- Navigation & Session List -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">
+          <span>Active Portfolios</span>
+          <span class="count-badge" id="sessionCount">2</span>
+        </div>
+        <div class="session-list" id="sessionList">
+          <a href="/chat/029c1815-a1a1-48e6-929b-1f6909f28fd5" class="session-item active" id="session-029c1815">
+            <div class="session-crest">⚜️</div>
+            <div class="session-info">
+              <div class="session-name">Senior Frontend Architect</div>
+              <div class="session-meta">Remote • 4 Curated Matches • 98% Fit</div>
+            </div>
+            <span class="gold-indicator" title="Active Thread">✦</span>
+          </a>
+          <a href="/jobs" class="session-item">
+            <div class="session-crest">💎</div>
+            <div class="session-info">
+              <div class="session-name">Executive Role Explorer</div>
+              <div class="session-meta">Pre-screened High Compensation</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="nav-section-title mt-4">
+          <span>Co-Pilot Executive Suite</span>
+        </div>
+        <div class="tools-list">
+          <button type="button" class="tool-item" id="sidebarUploadCvBtn">
+            <div class="tool-icon">📄</div>
+            <div class="tool-info">
+              <div class="tool-name">Upload Resume / CV</div>
+              <div class="tool-meta">PDF, DOCX to dynamically recalibrate</div>
+            </div>
+          </button>
+          <button type="button" class="tool-item" id="openTrackerBtn">
+            <div class="tool-icon">📋</div>
+            <div class="tool-info">
+              <div class="tool-name">Applications Database</div>
+              <div class="tool-meta">Real SQL verified registry</div>
+            </div>
+            <span class="tool-count gold-badge" id="appCountBadge">1</span>
+          </button>
+          <button type="button" class="tool-item" id="openCvListBtn">
+            <div class="tool-icon">✍️</div>
+            <div class="tool-info">
+              <div class="tool-name">Tailored Dossiers</div>
+              <div class="tool-meta">ATS-optimized executive resumes</div>
+            </div>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer (Candidate & Settings) -->
+      <div class="sidebar-footer">
+        <div class="candidate-bar">
+          <div class="candidate-avatar luxury-avatar" id="candidateAvatarText">AM</div>
+          <div class="candidate-details">
+            <div class="candidate-name" id="profileName">Alex Morgan</div>
+            <div class="candidate-role" id="profileRole">Senior Frontend Architect</div>
+          </div>
+        </div>
+        
+        <div class="sidebar-footer-controls">
+          <button type="button" class="pill-btn-api" id="sidebarApiKeyBtn">
+            <span class="status-dot connected" id="apiDotSidebar"></span>
+            <span id="apiStatusSidebar">OpenAI (Active)</span>
+          </button>
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Switch Theme">
+            <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN LUXURY CANVAS -->
+    <main class="atom-main-canvas">
+      <!-- Top Header Bar -->
+      <header class="atom-header">
+        <div class="header-left">
+          <button type="button" class="mobile-menu-btn" id="mobileMenuBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div class="header-session-title">
+            <h1 class="session-heading" id="headerSessionTitle">Senior Frontend Engineer • Remote</h1>
+            <div class="header-status-badge">
+              <span class="pulse-ring gold-pulse"></span>
+              <span>Atom Premier AI • Executive Co-Pilot</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="db-inspect-btn" id="inspectDbBtn" title="Inspect SQLite Database records">
+            <span class="db-tag">SQL DB</span>
+            <span id="dbRecordSummary">Live Data</span>
+          </button>
+
+          <button type="button" class="api-key-header-btn" id="headerApiKeyBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span id="apiKeyHeaderLabel">AI Key Settings</span>
+            <span class="key-indicator-pill active" id="keyIndicator">OpenAI Ready</span>
+          </button>
+          
+          <button type="button" class="header-action-btn luxury-btn-outline" id="quickNewSearchBtn" title="Start new executive search">
+            <span>+ New Portfolio</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Thread Area -->
+      <div class="chat-thread-scroll" id="chatThreadScroll">
+        <div class="chat-container">
+          
+          <!-- Holographic Hero Core Banner -->
+          <div class="atom-hero-banner luxury-glass-card">
+            <!-- Animated 3D Holographic Mascot Sphere -->
+            <div class="holographic-orb-wrapper">
+              <div class="orb-outer-ring"></div>
+              <div class="orb-core">
+                <div class="orb-sparkle s1">✦</div>
+                <div class="orb-sparkle s2">✦</div>
+              </div>
+            </div>
+            
+            <div class="hero-text-content">
+              <div class="luxury-badge">
+                <span>✦ BESPOKE CAREER INTELLIGENCE</span>
+              </div>
+              <h2 class="hero-title">Elevate Your Career with Atom Premier</h2>
+              <p class="hero-desc">
+                An ultra-refined AI co-pilot connected to a real SQL database. Upload your resume to recalibrate matching scores, preview tailored executive dossiers, and execute verified job applications with human-in-the-loop governance.
+              </p>
+              <div class="hero-cta-row">
+                <button type="button" class="luxury-gold-btn" id="heroUploadCvBtn">
+                  <span>📄 Upload CV to Recalibrate Matching</span>
+                </button>
+                <a href="#quick-apply" class="luxury-outline-gold" id="heroExploreJobsBtn">
+                  <span>Explore 4 Bespoke Openings ↓</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="messages-stream" id="messagesStream">
+            <!-- Populated dynamically from SQLite database -->
+          </div>
+
+          <!-- Luxury Typing Indicator -->
+          <div class="atom-typing-indicator" id="atomTypingIndicator" style="display: none;">
+            <div class="luxury-typing-orb">
+              <div class="typing-ring"></div>
+              <div class="typing-glow"></div>
+            </div>
+            <span class="typing-label">Atom AI is synthesizing executive response & querying database...</span>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Quick Action Suggestions Bar -->
+      <div class="quick-suggestions-bar">
+        <div class="suggestions-label">Suggestions:</div>
+        <div class="suggestions-slider hide-scrollbar">
+          <button type="button" class="suggestion-chip" data-prompt="Apply to Stripe with Atom co-pilot">
+            ⚡ Apply to Stripe
+          </button>
+          <button type="button" class="suggestion-chip" data-prompt="Tailor my CV for Linear Staff UI Systems Engineer">
+            📄 Tailor CV for Linear
+          </button>
+          <button type="button" class="suggestion-chip" data-prompt="Prepare executive interview Q&A for Anthropic">
+            🎯 Anthropic Interview Prep
+          </button>
+          <button type="button" class="suggestion-chip" data-prompt="Draft a high-impact cover letter for Vercel Lead Platform Engineer">
+            ✉️ Draft Letter for Vercel
+          </button>
+          <button type="button" class="suggestion-chip" data-prompt="Show all applications currently registered in the database">
+            📊 View Database Records
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Input Dock -->
+      <div class="chat-input-dock">
+        <!-- Hidden CV File Input -->
+        <input type="file" id="cvFileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display: none;" />
+
+        <form class="chat-input-form luxury-glass-input" id="chatForm">
+          <button type="button" class="attach-cv-btn" id="attachCvBtn" title="Upload your CV (PDF, DOCX, TXT)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span class="attach-label" id="attachCvLabel">Upload CV (PDF/DOCX)</span>
+          </button>
+          
+          <textarea
+            class="chat-textarea"
+            id="chatTextarea"
+            rows="1"
+            placeholder="Command Atom, request custom tailored documents, or say 'Apply to Stripe'..."
+            required
+          ></textarea>
+          
+          <button type="submit" class="send-message-btn luxury-send-btn" id="sendBtn" title="Send message to Atom">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </form>
+        <div class="input-subnote">
+          Atom synchronizes all applications into the persistent SQLite database (`atom_luxury.db`) with human-in-the-loop verification.
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- SLIDE-OVER LUXURY APPLICATION CO-PILOT DRAWER -->
+  <div class="modal-backdrop" id="applyModalBackdrop" style="display: none;">
+    <div class="co-pilot-drawer luxury-glass-drawer" id="coPilotDrawer">
+      <div class="drawer-header">
+        <div class="drawer-header-info">
+          <div class="co-pilot-tag">✦ EXECUTIVE CO-PILOT • STAGED APPLICATION</div>
+          <h2 class="drawer-title" id="drawerJobTitle">Application for Senior Frontend Engineer</h2>
+          <div class="drawer-subtitle" id="drawerCompany">Stripe • Remote</div>
+        </div>
+        <button type="button" class="close-drawer-btn" id="closeApplyDrawerBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- Human-in-the-Loop Safeguard Notice -->
+        <div class="safeguard-banner luxury-safeguard">
+          <div class="safeguard-icon">🛡️</div>
+          <div class="safeguard-text">
+            <strong>Human-in-the-Loop Governance:</strong> Atom has pre-populated and calibrated your application using your profile and tailored resume. Review all fields below prior to committing to the database.
+          </div>
+        </div>
+
+        <!-- Section 1: Candidate Profile -->
+        <div class="drawer-section luxury-section">
+          <div class="section-badge">1. Verified Candidate Credentials</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="applyFullName" class="form-input" value="Alex Morgan" />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="applyEmail" class="form-input" value="alex.morgan.dev@gmail.com" />
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="applyPhone" class="form-input" value="+1 (555) 234-5678" />
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="applyLocation" class="form-input" value="San Francisco, CA (Remote)" />
+            </div>
+            <div class="form-group">
+              <label>LinkedIn Dossier</label>
+              <input type="text" id="applyLinkedIn" class="form-input" value="https://linkedin.com/in/alexmorgandev" />
+            </div>
+            <div class="form-group">
+              <label>Portfolio / Code Base</label>
+              <input type="text" id="applyPortfolio" class="form-input" value="https://github.com/alexmorgandev" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Tailored Documents Attached -->
+        <div class="drawer-section luxury-section">
+          <div class="section-badge">2. Bespoke Documents Attached</div>
+          <div class="attached-doc-card luxury-doc-card">
+            <div class="doc-icon">💎</div>
+            <div class="doc-details">
+              <div class="doc-title" id="docCvTitle">Executive_Tailored_Dossier_Stripe.pdf</div>
+              <div class="doc-meta">ATS Rating: <strong>96% Match</strong> • Database Verified</div>
+            </div>
+            <a href="/api/download-cv/job-stripe-01" class="btn-sm-download luxury-download-btn" id="downloadCvInDrawer" target="_blank">
+              Download PDF
+            </a>
+          </div>
+
+          <div class="form-group mt-3">
+            <label>Cover Letter (Synthesized by Atom)</label>
+            <textarea class="form-textarea" id="applyCoverLetter" rows="4">Dear Hiring Team,
+
+I am writing to express my enthusiastic interest in the Senior Frontend Engineer position. With 6+ years specializing in high-performance web applications, scalable design systems, and TypeScript architecture, I have long admired your standard of engineering excellence.
+
+In my recent role, I led our design system adoption across 50+ engineers and improved Core Web Vitals to the 99th percentile. I look forward to contributing to your core UI platform.
+
+Sincerely,
+Alex Morgan</textarea>
+          </div>
+        </div>
+
+        <!-- Section 3: Job-Specific Screening Questions -->
+        <div class="drawer-section luxury-section">
+          <div class="section-badge">3. Strategic Screening Prompts (AI Answered)</div>
+          <div id="screeningQuestionsContainer">
+            <!-- Populated dynamically based on job -->
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <div class="footer-status-text">
+          <span class="db-dot"></span> Persists to SQLite Database
+        </div>
+        <div class="footer-actions">
+          <button type="button" class="btn-cancel" id="cancelApplyBtn">Cancel</button>
+          <button type="button" class="btn-confirm-apply luxury-gold-btn" id="confirmApplyBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Authorize & Commit to Database</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API KEY SETTINGS MODAL -->
+  <div class="modal-backdrop" id="apiKeyModalBackdrop" style="display: none;">
+    <div class="config-modal luxury-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">🔑</div>
+          <div>
+            <h3 class="modal-title">AI Intelligence Credentials</h3>
+            <p class="modal-subtitle">Connect your OpenAI or Google Gemini key for real-time generative reasoning</p>
+          </div>
+        </div>
+        <button type="button" class="close-modal-btn" id="closeApiKeyModalBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Active Provider</label>
+          <div class="provider-toggle-group">
+            <label class="provider-card active" id="providerOpenAiCard">
+              <input type="radio" name="apiProvider" value="openai" checked />
+              <div class="provider-card-content">
+                <div class="provider-title">OpenAI (Active)</div>
+                <div class="provider-desc">GPT-4o, GPT-4o-mini support</div>
+              </div>
+            </label>
+            <label class="provider-card" id="providerGeminiCard">
+              <input type="radio" name="apiProvider" value="gemini" />
+              <div class="provider-card-content">
+                <div class="provider-title">Google Gemini</div>
+                <div class="provider-desc">Gemini 2.5 Flash, 1.5 Pro models</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <div class="label-with-action">
+            <label class="form-label">API Key</label>
+            <span class="link-external" id="getKeyLink">Configured in SQLite Backend</span>
+          </div>
+          <div class="input-password-wrap">
+            <input
+              type="password"
+              class="form-input"
+              id="apiKeyInput"
+              placeholder="Paste sk-... or AIzaSy..."
+              autocomplete="off"
+            />
+            <button type="button" class="btn-toggle-eye" id="toggleKeyVisibility" title="Show/Hide">
+              👁️
+            </button>
+          </div>
+          <p class="form-help">Stored securely in your environment and synchronized with database session.</p>
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="form-label">Model Selection</label>
+          <select class="form-select" id="modelSelect">
+            <option value="gpt-4o-mini" selected>GPT-4o Mini (Fast & Cost Efficient)</option>
+            <option value="gpt-4o">GPT-4o (Most Intelligent)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+          </select>
+        </div>
+
+        <div class="test-feedback-box" id="testFeedbackBox" style="display: none;">
+          <div class="feedback-status" id="feedbackStatus">Pinging provider...</div>
+          <div class="feedback-detail" id="feedbackDetail"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-test-key luxury-btn-outline" id="testApiKeyBtn">
+          <span>⚡ Test Connection</span>
+        </button>
+        <button type="button" class="btn-save-key luxury-gold-btn" id="saveApiKeyBtn">
+          <span>Save & Activate</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATIONS TRACKER DATABASE MODAL -->
+  <div class="modal-backdrop" id="trackerModalBackdrop" style="display: none;">
+    <div class="tracker-modal luxury-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">🏛️</div>
+          <div>
+            <h3 class="modal-title">Applications Database Registry</h3>
+            <p class="modal-subtitle">Persistent SQL records stored in <code style="color:var(--gold);">atom_luxury.db</code></p>
+          </div>
+        </div>
+        <button type="button" class="close-modal-btn" id="closeTrackerModalBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="apps-table luxury-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Executive Role</th>
+                <th>Compatibility</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+                <th>Dossier</th>
+              </tr>
+            </thead>
+            <tbody id="trackerTableBody">
+              <!-- Populated directly from SQLite applications table -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.CURRENT_SESSION_ID = "{{ session_id }}";
+  </script>
+  <script src="/static/js/atom.js"></script>
+</body>
+</html>
